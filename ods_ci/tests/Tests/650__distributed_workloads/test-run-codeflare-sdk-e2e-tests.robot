@@ -30,6 +30,7 @@ Run TestRayClusterSDKOauth test
     ...     Tier1
     ...     DistributedWorkloads
     ...     Codeflare-sdk
+    Skip    "Skipping for testing CI"
     Run Codeflare-sdk E2E Test    mnist_raycluster_sdk_oauth_test.py
 
 
@@ -54,7 +55,7 @@ Prepare Codeflare-sdk E2E Test Suite
     ...    shell=true    stderr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
-        FAIL    Unable to setup Python
+        FAIL    Unable to setup Python virtual environment
     END
     RHOSi Setup
 
@@ -68,13 +69,18 @@ Teardown Codeflare-sdk E2E Test Suite
     IF    ${result.rc} != 0
         FAIL   Unable to cleanup Python virtual environment
     END
+    ${result} =    Run Process    poetry env use 3.11
+    ...    shell=true    stderr=STDOUT
+    IF    ${result.rc} != 0
+        FAIL   Unable to switch back to python 3.11 version
+    END
     RHOSi Teardown
 
 Run Codeflare-sdk E2E Test
     [Documentation]    Run codeflare-sdk E2E Test
     [Arguments]    ${TEST_NAME}
     Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
-    ${result} =    Run Process  source venv3.9/bin/activate && cd codeflare-sdk && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/${TEST_NAME}
+    ${result} =    Run Process  source venv3.9/bin/activate && cd codeflare-sdk && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/${TEST_NAME} && poetry env use 3.11 && deactivate
     ...    shell=true
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}

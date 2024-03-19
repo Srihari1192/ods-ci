@@ -12,6 +12,7 @@ Resource          ../../Resources/RHOSi.resource
 ${CODEFLARE-SDK_DIR}                codeflare-sdk
 ${CODEFLARE-SDK_REPO_URL}           %{CODEFLARE-SDK_REPO_URL=https://github.com/project-codeflare/codeflare-sdk.git}
 ${VIRTUAL_ENV_NAME}                 venv3.9
+${CODEFLARE_KUBECONFIG}                 %{HOME}/.kube/config
 
 *** Test Cases ***
 Run TestMNISTRayClusterSDK test
@@ -56,12 +57,26 @@ Prepare Codeflare-sdk E2E Test Suite
         FAIL    Unable to setup Python virtual environment
     END
 
+    ${result} =    Run Process  oc whoami
+    ...    shell=true    stderr=STDOUT
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    oc whoami details not showing
+    END
+
     Enable Component    codeflare
     Enable Component    ray
     RHOSi Setup
 
 Teardown Codeflare-sdk E2E Test Suite
     [Documentation]    Teardown codeflare-sdk E2E Test Suite
+
+    ${result} =    Run Process  oc whoami
+    ...    shell=true    stderr=STDOUT
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    oc whoami details not showing
+    END
 
     ${result} =    Run Process  rm -rf ${VIRTUAL_ENV_NAME}
     ...    shell=true    stderr=STDOUT
@@ -84,9 +99,10 @@ Run Codeflare-sdk E2E Test
     [Documentation]    Run codeflare-sdk E2E Test
     [Arguments]    ${TEST_NAME}
     Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
-    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd codeflare-sdk && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/${TEST_NAME} && deactivate
+    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && oc whoami && cd ${CODEFLARE-SDK_DIR} && poetry env use 3.9 && oc whoami && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/${TEST_NAME}
     ...    shell=true
     ...    stderr=STDOUT
+    ...    env:KUBECONFIG=${CODEFLARE_KUBECONFIG}
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
         FAIL    ${TEST_NAME} failed

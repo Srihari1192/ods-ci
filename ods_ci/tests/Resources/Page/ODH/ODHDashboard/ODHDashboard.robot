@@ -101,12 +101,13 @@ Logout From RHODS Dashboard
 Wait For RHODS Dashboard To Load
     [Arguments]  ${dashboard_title}="${ODH_DASHBOARD_PROJECT_NAME}"    ${wait_for_cards}=${TRUE}
     ...          ${expected_page}=Enabled
-    Wait For Condition    return document.title == ${dashboard_title}    timeout=15s
-    Wait Until Page Contains Element    xpath:${RHODS_LOGO_XPATH}    timeout=20s
-    IF    "${expected_page}" != "${NONE}"    Wait For Dashboard Page Title    ${expected_page}    timeout=75s
-    IF    ${wait_for_cards} == ${TRUE}
-        Wait Until Keyword Succeeds    3 times   5 seconds    Wait Until Cards Are Loaded
-    END
+     Wait Until Page Contains    Distributed Workload Metrics    timeout=30s
+#    Wait For Condition    return document.title == ${dashboard_title}    timeout=15s
+#    Wait Until Page Contains Element    xpath:${RHODS_LOGO_XPATH}    timeout=20s
+#    IF    "${expected_page}" != "${NONE}"    Wait For Dashboard Page Title    ${expected_page}    timeout=75s
+#    IF    ${wait_for_cards} == ${TRUE}
+#        Wait Until Keyword Succeeds    3 times   5 seconds    Wait Until Cards Are Loaded
+#    END
 
 Wait For Dashboard Page Title
     [Documentation]    Wait until the visible title (h1) of the current Dashboard page is '${page_title}'

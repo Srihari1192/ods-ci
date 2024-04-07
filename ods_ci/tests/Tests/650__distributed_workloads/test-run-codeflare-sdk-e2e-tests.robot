@@ -77,7 +77,19 @@ Run Codeflare-sdk E2E Test
     Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
     ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd codeflare-sdk && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/${TEST_NAME} --timeout\=600 && deactivate
     ...    shell=true
-    ...    stderr=STDOUT
+    ...    st derr=STDOUT
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    ${TEST_NAME} failed
+    END
+
+Run Codeflare-sdk Upgrade Test
+    [Documentation]    Run codeflare-sdk E2E Test
+    [Arguments]    ${TEST_NAME}
+    Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
+    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd codeflare-sdk && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/e2e/raycluster_sdk_upgrade_test.py::poetry run pytest -v -s ./tests/e2e/raycluster_sdk_upgrade_test.py::${TEST_NAME} --timeout\=600 && deactivate
+    ...    shell=true
+    ...    st derr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
         FAIL    ${TEST_NAME} failed

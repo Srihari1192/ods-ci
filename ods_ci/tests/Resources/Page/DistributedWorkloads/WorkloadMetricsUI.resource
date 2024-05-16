@@ -3,7 +3,7 @@ Documentation    Collection of keywords to interact with Distributed Workloads M
 Library    DateTime
 Library    String
 Resource         ../../Common.robot
-
+Resource         DistributedWorkloads.resource
 
 *** Variables ***
 ${PROJECT_XP}=    xpath=//div[text()='Project']
@@ -163,30 +163,14 @@ Get CPU Requested Tooltip Text
     RETURN    ${cpu_usage_value}    ${cpu_requested_value}
 
 Create Ray Cluster Workload
-    [Documentation]    checks Distributed Worklaod Status Overview displaying correctly
-    ${result} =    Run Process    git clone ${CODEFLARE-SDK_REPO_URL} ${CODEFLARE-SDK_DIR}
-    ...    shell=true    stderr=STDOUT
-    Log To Console    ${result.stdout}
-    IF    ${result.rc} != 0
-        FAIL    Unable to clone codeflare-sdk repo
-    END
+    [Documentation]    create ray cluster
+    Run Codeflare-sdk Upgrade Test    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK_DIR}    TestMNISTRayClusterUp
+    Set Global Variable    ${RAY_WORKLOAD_CREATED}   True
 
-    ${result} =    Run Process  virtualenv -p python3.9 ${VIRTUAL_ENV_NAME}
-    ...    shell=true    stderr=STDOUT
-    Log To Console    ${result.stdout}
-    IF    ${result.rc} != 0
-        FAIL    Unable to setup Python virtual environment
-    END
-
-    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd ${CODEFLARE-SDK_DIR} && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/upgrade/raycluster_sdk_upgrade_test.py::TestMNISTRayClusterUp --timeout\=300 && deactivate
-    ...    shell=true
-    ...    stderr=STDOUT
-    Log To Console    ${result.stdout}
-    IF    ${result.rc} != 0
-        FAIL    Running ray workload failed
-    ELSE
-        Set Global Variable    ${RAY_WORKLOAD_CREATED}   True
-    END
+Submit Ray Job
+    [Documentation]    submit ray job
+    Run Codeflare-sdk Upgrade Test    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK_DIR}    TestMnistJobSubmit
+    Set Global Variable    ${RAY_WORKLOAD_CREATED}   True
 
 Cleanup Ray Cluster Workload
     [Documentation]    cleanup the ray cluster created workload
@@ -347,3 +331,7 @@ Check Resource Consuming Usage
     ...    ELSE IF    ${usage_hover} > ${usage_lower_bound} and ${usage_hover} < ${usage_higher_bound}
     ...    Log    ${resource_name} usage value is partially matches
     ...    ELSE    Fail    ${resource_name} usage hover value ${usage_hover} is not matching with expected value ${usage_expected}
+
+Submit Ray Job Workload
+    [Documentation]    checks Distributed Worklaod Status Overview displaying correctly
+    [Arguments]    ${project_name}   ${ray_cluster}

@@ -18,6 +18,7 @@ Resource           ../../../Resources/Page/OCPDashboard/Pods/Pods.robot
 Resource           ../../../Resources/Page/OCPDashboard/Builds/Builds.robot
 Resource           ../../../Resources/Page/HybridCloudConsole/OCM.robot
 Resource           ../../../Resources/CLI/ModelServing/modelmesh.resource
+Resource           ../../../Resources/Page/DistributedWorkloads/WorkloadMetricsUI.resource
 Suite Setup        Dashboard Suite Setup
 Suite Teardown     RHOSi Teardown
 
@@ -118,6 +119,34 @@ Verify User Can Deploy Custom Runtime For Upgrade
     Wait Until Page Contains   Add serving runtime    timeout=15s
     Page Should Contain Element  //tr[@id='caikit-runtime']
     [Teardown]   Dashboard Test Teardown
+
+Verify Distributed Workload Metrics Resources By Creating Ray Cluster Wrokload
+    [Documentation]    Creates the Ray Cluster and verify resource usage
+    [Tags]  Upgrade
+
+    ${PRJ_RAY} =     Set Variable    test-ns-rayupgrade
+    Create Ray Cluster Workload
+    Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}
+    ...    ${ODH_DASHBOARD_URL}    ${BROWSER.NAME}    ${BROWSER.OPTIONS}
+    Open Distributed Workload Metrics Home Page
+    Select Distributed Workload Project By Name    ${PRJ_RAY}
+    Select Refresh Interval    15 seconds
+    Wait Until Element Is Visible    ${DISTRIBUITED_WORKLOAD_RESOURCE_METRICS_TITLE_XP}    timeout=20
+    Wait Until Element Is Visible    xpath=//*[text()="Running"]    timeout=30
+
+    ${cpu_requested} =   Get CPU Requested    ${PRJ_RAY}    local-queue-mnist
+    ${memory_requested} =   Get Memory Requested    ${PRJ_RAY}    local-queue-mnist    RayCluster
+    Check Requested Resources Chart    ${PRJ_RAY}    ${cpu_requested}    ${memory_requested}
+    Check Requested Resources    ${PRJ_RAY}    ${CPU_SHARED_QUOTA}    ${MEMEORY_SHARED_QUOTA}    ${cpu_requested}    ${memory_requested}    RayCluster
+
+    Check Distributed Workload Resource Metrics Status    mnist    Running
+    Check Distributed Worklaod Status Overview    mnist    Running    All pods were ready or succeeded since the workload admission
+
+    Click Button    ${PROJECT_METRICS_TAB_XP}
+    Check Distributed Workload Resource Metrics Chart    ${PRJ_RAY}    ${cpu_requested}    ${memory_requested}    RayCluster    mnist
+
+    [Teardown]    Run Keyword If Test Failed    Cleanup Ray Cluster Workload    ${PRJ_RAY}
+
 
 *** Keywords ***
 Dashboard Suite Setup

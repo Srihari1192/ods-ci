@@ -1,10 +1,10 @@
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
-  name: $RAY_CLUSTER_NAME
-  namespace: $NAMESPACE
+  name: mnist
+  namespace: test-ns-rayupgrade
   labels:
-      kueue.x-k8s.io/queue-name: $LOCAL_QUEUE
+      kueue.x-k8s.io/queue-name: test-local-queue
 spec:
   rayVersion: "2.7.0"
   headGroupSpec:
@@ -33,6 +33,13 @@ spec:
             limits:
               cpu: '1'
               memory: 2G
+        volumeMounts:
+            -  name: mnist
+               mountPath: /home/ray/jobs
+        volumes:
+            -   name: mnist
+                configMap:
+                    name: mnist
   workerGroupSpecs:
   - replicas: 1
     minReplicas: 1

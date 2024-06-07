@@ -31,6 +31,7 @@ ${PRJ_DESCRIPTION}=    project used for model serving tests
 ${MODEL_NAME}=    test-model
 ${MODEL_CREATED}=    ${FALSE}
 ${RUNTIME_NAME}=    Model Serving Test
+${PROJECT_CREATED}=    False
 
 
 *** Test Cases ***
@@ -148,17 +149,16 @@ Verify Custom Runtime Exists After Upgrade
 
 Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job After Upgrade
     [Documentation]    check the Ray Cluster exists , submit ray job and  verify resource usage after upgrade
-    [Tags]  Upgrade
+    [Tags]  Upgrade    Post-Upgrade
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
-    ${LOCAL_QUEUE}    Set Variable    local-queue-mnist
     ${JOB_NAME}    Set Variable    mnist
+    Set Global Variable    ${PROJECT_CREATED}   True
     Run Codeflare Upgrade Tests    TestMnistJobSubmit
-    Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}
+        Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}    ${BROWSER.NAME}    ${BROWSER.OPTIONS}
     Open Distributed Workload Metrics Home Page
     Select Distributed Workload Project By Name    ${PRJ_UPGRADE}
     Select Refresh Interval    15 seconds
-    Set Global Variable    ${project_created}    True
     Wait Until Element Is Visible    ${DISTRIBUITED_WORKLOAD_RESOURCE_METRICS_TITLE_XP}    timeout=20
     Wait Until Element Is Visible    xpath=//*[text()="Running"]    timeout=30
 

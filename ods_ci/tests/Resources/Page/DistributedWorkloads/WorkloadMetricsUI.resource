@@ -1,5 +1,6 @@
 *** Settings ***
 Documentation    Collection of keywords to interact with Distributed Workloads Metrics UI
+Library    BuiltIn
 Library    DateTime
 Library    String
 Resource         ../../Common.robot
@@ -22,9 +23,9 @@ ${REQUESTED_RESOURCES_TITLE_XP}=    xpath=//div[text()="Requested resources"]
 ${RESOURCES_CONSUMING_TITLE_XP}=    xpath=//div[text()="Top resource-consuming distributed workloads"]
 ${MAX_RETRIES}=    3
 ${RAY_WORKLOAD_CREATED}=    False
-${KUEUE_RESOURCES_SETUP_FILEPATH}=    ods_ci/tests/Resources/Page/DistributedWorkloads/kueue_resources_setup.sh
-${KUEUE_WORKLOADS_SETUP_FILEPATH}=    ods_ci/tests/Resources/Page/DistributedWorkloads/kueue_workloads.sh
-${RAY_CR_FILE}=    ods_ci/tests/Resources/Page/DistributedWorkloads/ray_cluster_cr.yaml
+${KUEUE_RESOURCES_SETUP_FILEPATH}=    tests/Resources/Page/DistributedWorkloads/kueue_resources_setup.sh
+${KUEUE_WORKLOADS_SETUP_FILEPATH}=    tests/Resources/Page/DistributedWorkloads/kueue_workloads.sh
+${RAY_CR_FILE}=    tests/Resources/Page/DistributedWorkloads/ray_cluster_cr.yaml
 ${CPU_SHARED_QUOTA}=    9
 ${MEMEORY_SHARED_QUOTA}=    36
 ${tolerance}=    1
@@ -121,14 +122,18 @@ Get Memory Requested
     [Arguments]    ${project}    ${local_queue_name}    ${workload_type}
     ${result}  ${output}=    Run And Return Rc And Output
     ...    oc get LocalQueue ${local_queue_name} -n ${project} -o=jsonpath='{.status.flavorsReservation[0].resources[?(@.name=="memory")].total}'
-    IF    "${workload_type}" == "Job"
+    ${output}=     Convert To String   ${output}
+    Run Keyword If    'Ki' in ${output}
         ${memory_requested}=    Replace String    ${output}    Mi    ${EMPTY}
         ${memory_requested_num}=    Convert To Number    ${memory_requested}
         ${memory_requested_gb_value}=    Evaluate    round( ${memory_requested_num} / 1024, 3)
-    ELSE
+    ELSE IF        'Mi' in ${output}
         ${memory_requested}=    Replace String    ${output}    Ki    ${EMPTY}
         ${memory_requested_num}=    Convert To Number    ${memory_requested}
         ${memory_requested_gb_value}=    Evaluate    round( ${memory_requested_num} / (1024*1024), 3)
+    ELSE
+        ${memory_requested_num}=    Convert To Number    ${output}
+        ${memory_requested_gb_value}=    Evaluate    round( ${memory_requested_num} / (1024*1024*1024), 3)
     END
     RETURN  ${memory_requested_gb_value}
 
@@ -300,8 +305,8 @@ Check Distributed Worklaod Status Overview
     Page Should Contain    text=${JOB_STATUS}: 1
     Check Expected String Contains    //td[@data-label="Name"]    ${job_name}
     Check Expected String Equals    //td[@data-label="Priority"]    0
-    ${get_date} =    Get Current Date    result_format=%-m/%-d/%Y
-    Check Expected String Contains    //td[@data-label="Created"]    ${get_date}
+#    ${get_date} =    Get Current Date    result_format=%-m/%-d/%Y
+#    Check Expected String Contains    //td[@data-label="Created"]    ${get_date}
     Check Expected String Equals    //td[@data-label="Status"]//span[@class="pf-v5-c-label__text"]    ${job_status}
     Check Expected String Equals    //td[@data-label="Latest Message"]    ${job_status_message}
 

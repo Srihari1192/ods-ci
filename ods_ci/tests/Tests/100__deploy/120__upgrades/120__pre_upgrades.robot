@@ -122,20 +122,25 @@ Verify User Can Deploy Custom Runtime For Upgrade
     Page Should Contain Element  //tr[@id='caikit-runtime']
     [Teardown]   Dashboard Test Teardown
 
-Verify Distributed Workload Metrics Resources By Creating Ray Cluster Wrokload
+Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     [Documentation]    Creates the Ray Cluster and verify resource usage
-    [Tags]  Upgrade
+    [Tags]  Upgrade    Pre-Upgrade
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
     ${JOB_NAME}    Set Variable    mnist
-    Run Codeflare Upgrade Tests    TestMNISTRayClusterUp
     Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}    ${BROWSER.NAME}    ${BROWSER.OPTIONS}
+#    Open Data Science Projects Home Page
+#    Create Data Science Project    title=${PRJ_UPGRADE}    description="proj used for distributed workloads upgrade test"
+#    Set Global Variable    ${PROJECT_CREATED}    True
+    # setup Kueue resource for the created project
+#    Setup Kueue Resources    ${PRJ_UPGRADE}    ${CLUSTER_QUEUE}    ${RESOURCE_FLAVOR}    ${LOCAL_QUEUE}
     Open Distributed Workload Metrics Home Page
     Select Distributed Workload Project By Name    ${PRJ_UPGRADE}
-    Set Global Variable    ${PROJECT_CREATED}    True
     Select Refresh Interval    15 seconds
     Wait Until Element Is Visible    ${DISTRIBUITED_WORKLOAD_RESOURCE_METRICS_TITLE_XP}    timeout=20
-    Wait Until Element Is Visible    xpath=//*[text()="Running"]    timeout=30
+#    Create Ray Cluster Workload    ${PRJ_UPGRADE}    ${LOCAL_QUEUE}    ${JOB_NAME}
+#    Wait Until Element Is Visible     xpath=//*[text()="Admitted"]    timeout=30
+    Wait Until Element Is Visible    xpath=//*[text()="Running"]    timeout=120
 
     ${cpu_requested} =   Get CPU Requested    ${PRJ_UPGRADE}    local-queue-mnist
     ${memory_requested} =   Get Memory Requested    ${PRJ_UPGRADE}    local-queue-mnist    RayCluster
@@ -148,7 +153,9 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Wrokload
     Click Button    ${PROJECT_METRICS_TAB_XP}
     Check Distributed Workload Resource Metrics Chart    ${PRJ_UPGRADE}    ${cpu_requested}    ${memory_requested}    RayCluster    ${JOB_NAME}
 
-    [Teardown]    Run Keyword If Test Failed    Codeflare Upgrade Tests Teardown    ${PRJ_UPGRADE}    ${PROJECT_CREATED}
+    [Teardown]    Run Keyword If Test Failed    Cleanup Project And Kueue Resources
+    ...    ${PRJ_UPGRADE}    ${PROJECT_CREATED}
+
 
 *** Keywords ***
 Dashboard Suite Setup

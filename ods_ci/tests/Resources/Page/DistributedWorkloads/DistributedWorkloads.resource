@@ -68,7 +68,7 @@ Run Codeflare Upgrade Tests
         FAIL    Unable to fetch codeflare-sdk latest tag
     END
 
-    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${latest_tag.stdout}    ${CODEFLARE-SDK_DIR}
+    Clone Git Repository    https://github.com/Srihari1192/codeflare-sdk.git    RHOAIENG-7032-updateAuth    ${CODEFLARE-SDK_DIR}
 
     ${result} =    Run Process  virtualenv -p python3.9 ${VIRTUAL_ENV_NAME}
     ...    shell=true    stderr=STDOUT
@@ -77,11 +77,7 @@ Run Codeflare Upgrade Tests
         FAIL    Unable to setup Python virtual environment
     END
 
-    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate &&
-    ...    cd ${CODEFLARE-SDK_DIR} && poetry env use 3.9 &&
-    ...    poetry install --with test,docs &&
-    ...    poetry run pytest -v -s ./tests/upgrade/raycluster_sdk_upgrade_test.py::${TEST_NAME} --timeout\=300 &&
-    ...    deactivate
+    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd ${CODEFLARE-SDK_DIR} && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/upgrade/raycluster_sdk_upgrade_test.py::${TEST_NAME} --timeout\=300 && deactivate
     ...    shell=true
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}

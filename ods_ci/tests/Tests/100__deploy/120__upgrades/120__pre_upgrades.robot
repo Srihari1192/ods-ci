@@ -129,6 +129,8 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
     ${JOB_NAME}    Set Variable    mnist
     Run Codeflare Upgrade Tests    TestMNISTRayClusterUp
+    Set Library Search Order    SeleniumLibrary
+    RHOSi Setup
     Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}    ${BROWSER.NAME}    ${BROWSER.OPTIONS}
     Open Distributed Workload Metrics Home Page
@@ -152,8 +154,8 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     Check Distributed Workload Resource Metrics Chart    ${PRJ_UPGRADE}    ${cpu_requested}
     ...    ${memory_requested}    RayCluster    ${JOB_NAME}
 
-    [Teardown]    Run Keyword If Test Failed
-    ...    Codeflare Upgrade Tests Teardown    ${PRJ_UPGRADE}    ${DW_PROJECT_CREATED}
+    [Teardown]    Run Keywords    Cleanup Codeflare Setup    AND
+    ...    Run Keyword If Test Failed    Codeflare Upgrade Tests Teardown    ${PRJ_UPGRADE}    ${DW_PROJECT_CREATED}
 
 
 *** Keywords ***

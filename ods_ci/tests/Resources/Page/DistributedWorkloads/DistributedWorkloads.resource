@@ -12,7 +12,7 @@ ${GO_JUNIT_REPORT_TOOL}    github.com/jstemmer/go-junit-report/v2@latest
 ${VIRTUAL_ENV_NAME}    venv3.9
 ${CODEFLARE-SDK-API_URL}            %{CODEFLARE-SDK-API_URL=https://api.github.com/repos/project-codeflare/codeflare-sdk/releases/latest}
 ${CODEFLARE-SDK_DIR}    codeflare-sdk-upgrade
-${CODEFLARE-SDK_REPO_URL}    %{CODEFLARE-SDK_REPO_URL=https://github.com/project-codeflare/codeflare-sdk.git}
+${CODEFLARE-SDK_REPO_URL}    %{CODEFLARE-SDK_REPO_URL=https://github.com/Srihari1192/codeflare-sdk.git}
 
 
 *** Keywords ***
@@ -68,7 +68,7 @@ Run Codeflare Upgrade Tests
         FAIL    Unable to fetch codeflare-sdk latest tag
     END
 
-    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${latest_tag.stdout}    ${CODEFLARE-SDK_DIR}
+    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    RHOAIENG-9706    ${CODEFLARE-SDK_DIR}
 
     ${result} =    Run Process  virtualenv -p python3.9 ${VIRTUAL_ENV_NAME}
     ...    shell=true    stderr=STDOUT
@@ -88,6 +88,14 @@ Run Codeflare Upgrade Tests
 Codeflare Upgrade Tests Teardown
     [Documentation]   Run codeflare upgrade tests by cloning codeflare-sdk repo
     [Arguments]    ${project_name}    ${project_created}
+    IF    ${project_created} == True    Run Keywords
+    ...    Run   oc delete project ${project_name}    AND
+    ...    Run Process    oc delete LocalQueue local-queue-mnist -n ${project_name} &
+    ...    oc delete ClusterQueue cluster-queue-mnist &
+    ...    oc delete ResourceFlavor default-flavor-mnist    shell=True
+
+Cleanup Codeflare Setup
+    [Documentation]   cleanup codeflare repository cloned and python setup
     ${result} =    Run Process  rm -rf ${VIRTUAL_ENV_NAME}
     ...    shell=true    stderr=STDOUT
     Log To Console    ${result.stdout}
@@ -101,9 +109,3 @@ Codeflare Upgrade Tests Teardown
     IF    ${result.rc} != 0
         FAIL   Unable to cleanup directory ${CODEFLARE-SDK_DIR}
     END
-
-    IF    ${project_created} == True    Run Keywords
-    ...    Run   oc delete project ${project_name}    AND
-    ...    Run Process    oc delete LocalQueue local-queue-mnist -n ${project_name} &
-    ...    oc delete ClusterQueue cluster-queue-mnist &
-    ...    oc delete ResourceFlavor default-flavor-mnist    shell=True

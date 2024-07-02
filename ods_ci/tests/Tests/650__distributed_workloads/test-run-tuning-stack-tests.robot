@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Training operator E2E tests - https://github.com/opendatahub-io/distributed-workloads/tree/main/tests/kfto
 Suite Setup       Prepare Training Operator E2E Test Suite
-Suite Teardown    Teardown Training Operator E2E Test Suite
+#Suite Teardown    Teardown Training Operator E2E Test Suite
 Library           OperatingSystem
 Library           Process
 Resource          ../../../tasks/Resources/RHODS_OLM/install/oc_install.robot

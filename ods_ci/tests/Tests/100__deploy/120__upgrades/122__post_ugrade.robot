@@ -149,7 +149,7 @@ Verify Custom Runtime Exists After Upgrade
 
 Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job After Upgrade
     [Documentation]    check the Ray Cluster exists , submit ray job and  verify resource usage after upgrade
-    [Tags]  Upgrade
+    [Tags]  DW-Upgrade
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
     ${LOCAL_QUEUE}    Set Variable    local-queue-mnist
     ${JOB_NAME}    Set Variable    mnist

@@ -149,7 +149,7 @@ Verify Custom Runtime Exists After Upgrade
 
 Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job After Upgrade
     [Documentation]    check the Ray Cluster exists , submit ray job and  verify resource usage after upgrade
-    [Tags]  Upgrade
+    [Tags]  DW-Upgrade
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
     ${LOCAL_QUEUE}    Set Variable    local-queue-mnist
     ${JOB_NAME}    Set Variable    mnist
@@ -166,7 +166,7 @@ Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job Aft
     Wait Until Element Is Visible    xpath=//*[text()="Running"]    timeout=30
 
     ${cpu_requested} =   Get CPU Requested    ${PRJ_UPGRADE}    ${LOCAL_QUEUE}
-    ${memory_requested} =   Get Memory Requested    ${PRJ_UPGRADE}    ${LOCAL_QUEUE}    Upgrade
+    ${memory_requested} =   Get Memory Requested    ${PRJ_UPGRADE}    ${LOCAL_QUEUE}    RayCluster
     Check Requested Resources Chart    ${PRJ_UPGRADE}    ${cpu_requested}    ${memory_requested}
     Check Requested Resources    ${PRJ_UPGRADE}    ${CPU_SHARED_QUOTA}
     ...    ${MEMEORY_SHARED_QUOTA}    ${cpu_requested}    ${memory_requested}    RayCluster

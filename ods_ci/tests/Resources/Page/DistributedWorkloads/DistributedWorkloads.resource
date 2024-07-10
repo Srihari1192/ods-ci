@@ -32,7 +32,7 @@ Run Codeflare Upgrade Tests
         FAIL    Unable to fetch codeflare-sdk latest tag
     END
 
-    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${latest_tag.stdout}    ${CODEFLARE-SDK_DIR}
+    Clone Git Repository    https://github.com/Srihari1192/codeflare-sdk.git    RHOAIENG-9706    ${CODEFLARE-SDK_DIR}
 
     ${result} =    Run Process  virtualenv -p python3.9 ${VIRTUAL_ENV_NAME}
     ...    shell=true    stderr=STDOUT

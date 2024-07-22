@@ -125,11 +125,11 @@ Verify User Can Deploy Custom Runtime For Upgrade
 
 Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     [Documentation]    Creates the Ray Cluster and verify resource usage
-    [Tags]    Upgrade
+    [Tags]    Upgrade    Codeflare-sdk
     [Setup]    Prepare Codefalre-sdk Test Setup
     ${PRJ_UPGRADE}    Set Variable    test-ns-rayupgrade
     ${JOB_NAME}    Set Variable    mnist
-    Run Codeflare-SDK Test    raycluster_sdk_upgrade_test.py::TestMNISTRayClusterUp    upgrade
+    Run Codeflare-SDK Test    upgrade    raycluster_sdk_upgrade_test.py::TestMNISTRayClusterUp
     Set Library Search Order    SeleniumLibrary
     RHOSi Setup
     Launch Dashboard    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${TEST_USER.AUTH_TYPE}

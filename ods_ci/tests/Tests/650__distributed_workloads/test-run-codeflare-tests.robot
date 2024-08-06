@@ -44,7 +44,7 @@ Run TestRayTuneHPOCpu ODH test
 
 Run TestRayTuneHPOGpu ODH test
     [Documentation]    Run Go ODH test: TestMnistRayTuneHpoGpu
-    [Tags]  Resources-GPU    RHOAIENG-10004
+    [Tags]  Resources-GPU
     ...     Tier1
     ...     DistributedWorkloads
     ...     CodeflareOperator

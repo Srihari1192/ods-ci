@@ -2,11 +2,12 @@
 Documentation    This is a resource file for Distributed Workloads.
 Library          OperatingSystem
 Library          Process
+Resource          ../../../../tests/Resources/Page/OCPLogin/OCPLogin.robot
 
 
 *** Variables ***
 ${VIRTUAL_ENV_NAME}                      venv3.9
-${CODEFLARE-SDK-RELEASE-TAG}             v0.21.1
+${CODEFLARE-SDK-RELEASE-TAG}             main
 ${CODEFLARE-SDK_DIR}                     codeflare-sdk
 ${CODEFLARE-SDK_REPO_URL}                %{CODEFLARE-SDK_REPO_URL=https://github.com/project-codeflare/codeflare-sdk.git}
 ${DISTRIBUTED_WORKLOADS_RELEASE_ASSETS}  https://github.com/opendatahub-io/distributed-workloads/releases/latest/download
@@ -25,6 +26,7 @@ ${AWS_STORAGE_BUCKET}                    ${S3.BUCKET_5.NAME}
 ${AWS_ACCESS_KEY_ID}                     ${S3.AWS_ACCESS_KEY_ID}
 ${AWS_SECRET_ACCESS_KEY}                 ${S3.AWS_SECRET_ACCESS_KEY}
 ${AWS_STORAGE_BUCKET_MNIST_DIR}          mnist-datasets
+${KUEUE_KUBECONFIG}                      %{WORKSPACE=.}/kueue-kubeconfig
 
 
 *** Keywords ***
@@ -54,8 +56,14 @@ Prepare Codeflare-SDK Test Setup
 Run Codeflare-SDK Test
     [Documentation]   Run codeflare-sdk Test
     [Arguments]    ${TEST_TYPE}    ${TEST_NAME}
+    Log To Console    "Log back as cluster admin"
+    # Store login information into dedicated config
+    Login To OCP Using API    ${OCP_ADMIN_USER.USERNAME}    ${OCP_ADMIN_USER.PASSWORD}
     Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
-    ${result} =    Run Process  source ${VIRTUAL_ENV_NAME}/bin/activate && cd ${CODEFLARE-SDK_DIR} && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/${TEST_TYPE}/${TEST_NAME} --timeout\=300 && deactivate
+    ${server} =   Run    oc whoami --show-server
+    ${command} =    Set Variable    source ${VIRTUAL_ENV_NAME}/bin/activate && cd ${CODEFLARE-SDK_DIR} && oc login ${server} -u ${OCP_ADMIN_USER.USERNAME} -p ${OCP_ADMIN_USER.PASSWORD} --insecure-skip-tls-verify=true && poetry env use 3.9 && poetry install --with test,docs && poetry run pytest -v -s ./tests/${TEST_TYPE}/${TEST_NAME} --timeout\=300 && deactivate
+    ${result} =    Run Process    bash    -c    ${command}
+    ...    env:KUBECONFIG=${KUEUE_KUBECONFIG}
     ...    env:RAY_IMAGE=${RAY_IMAGE}
     ...    env:AWS_DEFAULT_ENDPOINT=${AWS_DEFAULT_ENDPOINT}
     ...    env:AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}

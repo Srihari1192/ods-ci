@@ -7,7 +7,8 @@ Library           Process
 Resource          ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 Resource          ../../../Resources/RHOSi.resource
 Resource          ../../../../tests/Resources/Page/DistributedWorkloads/DistributedWorkloads.resource
-
+Resource          ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
+Resource          ../../../../tests/Resources/Page/OCPLogin/OCPLogin.robot
 
 *** Test Cases ***
 Run TestRayClusterSDKOauth test

@@ -25,7 +25,7 @@ Run TestRayClusterSDKOauth test with Python 3.11
     ...     Tier1
     ...     DistributedWorkloads
     ...     WorkloadsOrchestration
-    ...     Codeflare-sdk
+    ...     Codeflare-sdk-getCluster
     Run Codeflare-SDK Test    e2e    mnist_raycluster_sdk_oauth_test.py    3.11    ${RAY_IMAGE_3.11}    ${CODEFLARE-SDK-RELEASE-TAG}
 
 Run TestRayLocalInteractiveOauth test with Python 3.9

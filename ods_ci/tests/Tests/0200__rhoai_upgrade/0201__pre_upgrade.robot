@@ -186,9 +186,9 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     Set Library Search Order        SeleniumLibrary
     RHOSi Setup
     Launch Dashboard
-    ...    ${TEST_USER.USERNAME}
-    ...    ${TEST_USER.PASSWORD}
-    ...    ${TEST_USER.AUTH_TYPE}
+    ...    ${OCP_ADMIN_USER.USERNAME}
+    ...    ${OCP_ADMIN_USER.PASSWORD}
+    ...    ${OCP_ADMIN_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}
     ...    ${BROWSER.NAME}
     ...    ${BROWSER.OPTIONS}

@@ -65,7 +65,7 @@ Prepare Codeflare-SDK Test Setup
     Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
 
     # Perform oc login with default kubeconfig
-    Login To OCP Using API And Kubeconfig    ${OCP_ADMIN_USER.USERNAME}    ${OCP_ADMIN_USER.PASSWORD}    ${KUBECONFIGPATH}
+    Login To OCP Using API And Kubeconfig    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${KUBECONFIGPATH}
 
 Run Codeflare-SDK Test
     [Documentation]   Run codeflare-sdk Test

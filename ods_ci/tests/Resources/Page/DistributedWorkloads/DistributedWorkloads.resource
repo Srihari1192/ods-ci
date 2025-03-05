@@ -62,7 +62,7 @@ Clone Git Repository
 Prepare Codeflare-SDK Test Setup
     [Documentation]   Prepare codeflare-sdk tests by cloning codeflare-sdk repo and python virtual environmnet
 
-    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
+    Clone Git Repository    https://github.com/Srihari1192/codeflare-sdk.git    RHOAIENG-20639-test    ${CODEFLARE-SDK_DIR}
 
     # Perform oc login with default kubeconfig
     Login To OCP Using API And Kubeconfig    ${OCP_ADMIN_USER.USERNAME}    ${OCP_ADMIN_USER.PASSWORD}    ${KUBECONFIGPATH}
@@ -83,6 +83,7 @@ Run Codeflare-SDK Test
     ...    env:CONTROL_LABEL=node-role.kubernetes.io/control-plane=
     ...    env:WORKER_LABEL=node-role.kubernetes.io/worker=
     ...    env:TOLERATION_KEY=node-role.kubernetes.io/master
+    ...    env:TEST_USER_TOKEN=${TEST_USER_TOKEN}
     ...    shell=true
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}

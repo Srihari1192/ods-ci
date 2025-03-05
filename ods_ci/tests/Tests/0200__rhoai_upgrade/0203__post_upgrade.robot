@@ -194,11 +194,13 @@ Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job Aft
     # robocop: off=too-long-test-case
     # robocop: off=too-many-calls-in-test-case
     [Documentation]    check the Ray Cluster exists , submit ray job and    verify resource usage after upgrade
-    [Tags]      Upgrade    WorkloadOrchestration
+    [Tags]      Upgrade    WorkloadOrchestration    Ray-Upgrade
     [Setup]     Prepare Codeflare-SDK Test Setup
     ${PRJ_UPGRADE}      Set Variable        test-ns-rayupgrade
     ${LOCAL_QUEUE}      Set Variable        local-queue-mnist
     ${JOB_NAME}     Set Variable        mnist
+    ${test_user_token} =    Generate User Token    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}
+    Set Suite Variable    ${TEST_USER_TOKEN}   ${test_user_token}
     Run Codeflare-SDK Test
     ...    upgrade
     ...    raycluster_sdk_upgrade_test.py::TestMnistJobSubmit
@@ -209,9 +211,9 @@ Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job Aft
     Set Library Search Order        SeleniumLibrary
     RHOSi Setup
     Launch Dashboard
-    ...    ${OCP_ADMIN_USER.USERNAME}
-    ...    ${OCP_ADMIN_USER.PASSWORD}
-    ...    ${OCP_ADMIN_USER.AUTH_TYPE}
+    ...    ${TEST_USER.USERNAME}
+    ...    ${TEST_USER.PASSWORD}
+    ...    ${TEST_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}
     ...    ${BROWSER.NAME}
     ...    ${BROWSER.OPTIONS}

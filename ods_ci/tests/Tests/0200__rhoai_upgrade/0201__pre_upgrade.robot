@@ -173,10 +173,12 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     # robocop: off=too-long-test-case
     # robocop: off=too-many-calls-in-test-case
     [Documentation]    Creates the Ray Cluster and verify resource usage
-    [Tags]      Upgrade    WorkloadOrchestration
+    [Tags]      Upgrade    WorkloadOrchestration    Ray-Upgrade
     [Setup]     Prepare Codeflare-SDK Test Setup
     ${PRJ_UPGRADE}=     Set Variable        test-ns-rayupgrade
     ${JOB_NAME}=        Set Variable        mnist
+    ${test_user_token} =    Generate User Token    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}
+    Set Suite Variable    ${TEST_USER_TOKEN}   ${test_user_token}
     Run Codeflare-SDK Test
     ...    upgrade
     ...    raycluster_sdk_upgrade_test.py::TestMNISTRayClusterUp
@@ -186,9 +188,9 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     Set Library Search Order        SeleniumLibrary
     RHOSi Setup
     Launch Dashboard
-    ...    ${OCP_ADMIN_USER.USERNAME}
-    ...    ${OCP_ADMIN_USER.PASSWORD}
-    ...    ${OCP_ADMIN_USER.AUTH_TYPE}
+    ...    ${TEST_USER.USERNAME}
+    ...    ${TEST_USER.PASSWORD}
+    ...    ${TEST_USER.AUTH_TYPE}
     ...    ${ODH_DASHBOARD_URL}
     ...    ${BROWSER.NAME}
     ...    ${BROWSER.OPTIONS}

@@ -6,10 +6,10 @@ Resource          ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${CODEFLARE-SDK-RELEASE-TAG}             v0.26.0
+${CODEFLARE-SDK-RELEASE-TAG}             RHOAIENG-20639-test
 ${CODEFLARE-SDK-RELEASE-TAG-3.9}         adjustments-release-0.21.1
 ${CODEFLARE-SDK_DIR}                     codeflare-sdk
-${CODEFLARE-SDK_REPO_URL}                %{CODEFLARE-SDK_REPO_URL=https://github.com/project-codeflare/codeflare-sdk.git}
+${CODEFLARE-SDK_REPO_URL}                %{CODEFLARE-SDK_REPO_URL= https://github.com/Srihari1192/codeflare-sdk.git}
 ${DISTRIBUTED_WORKLOADS_RELEASE_ASSETS}  https://github.com/opendatahub-io/distributed-workloads/releases/latest/download
 # Corresponds to quay.io/modh/ray:2.35.0-py311-cu121
 ${RAY_CUDA_IMAGE_3.11}                   quay.io/modh/ray@sha256:db667df1bc437a7b0965e8031e905d3ab04b86390d764d120e05ea5a5c18d1b4
@@ -62,10 +62,11 @@ Clone Git Repository
 Prepare Codeflare-SDK Test Setup
     [Documentation]   Prepare codeflare-sdk tests by cloning codeflare-sdk repo and python virtual environmnet
 
-    Clone Git Repository    https://github.com/Srihari1192/codeflare-sdk.git    RHOAIENG-20639-test    ${CODEFLARE-SDK_DIR}
+    Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
 
-    # Perform oc login with default kubeconfig
-    Login To OCP Using API And Kubeconfig    ${OCP_ADMIN_USER.USERNAME}    ${OCP_ADMIN_USER.PASSWORD}    ${KUBECONFIGPATH}
+#    Log To Console    "Login to OCP using  TEST_USER"
+#    # Perform oc login with default kubeconfig
+#    Login To OCP Using API And Kubeconfig     ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${KUBECONFIGPATH}
 
 Run Codeflare-SDK Test
     [Documentation]   Run codeflare-sdk Test

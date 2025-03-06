@@ -61,18 +61,20 @@ Clone Git Repository
 
 Prepare Codeflare-SDK Test Setup
     [Documentation]   Prepare codeflare-sdk tests by cloning codeflare-sdk repo and python virtual environmnet
-
+    ${oc_whoami} =  Run   oc whoami
+    Log To Console    "Logged in User before running sdk test : ${oc_whoami}"
     Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
-
+#    Log To Console"Login to OCP using  TEST_USER"
 #    Log To Console    "Login to OCP using  TEST_USER"
 #    # Perform oc login with default kubeconfig
-#    Login To OCP Using API And Kubeconfig     ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${KUBECONFIGPATH}
+    Log To Console    "performing Login To OCP Using API And Kubeconfig "
+    Login To OCP Using API And Kubeconfig     ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${KUBECONFIGPATH}
 
 Run Codeflare-SDK Test
     [Documentation]   Run codeflare-sdk Test
     [Arguments]    ${TEST_TYPE}    ${TEST_NAME}    ${PYTHON_VERSION}    ${RAY_IMAGE}    ${RELEASE_BRANCH}
     Log To Console    "Running codeflare-sdk test: ${TEST_NAME}"
-    ${result} =    Run Process  cd ${CODEFLARE-SDK_DIR} && git fetch origin && git checkout ${RELEASE_BRANCH} && git branch && poetry env use ${PYTHON_VERSION} && poetry install --with test,docs && poetry run pytest -v -s ./tests/${TEST_TYPE}/${TEST_NAME} --timeout\=540
+    ${result} =    Run Process  cd ${CODEFLARE-SDK_DIR} && git fetch origin && git checkout ${RELEASE_BRANCH} && git branch && poetry env use ${PYTHON_VERSION} && oc whoami && poetry install --with test,docs && poetry run pytest -v -s ./tests/${TEST_TYPE}/${TEST_NAME} --timeout\=540
     ...    env:RAY_IMAGE=${RAY_IMAGE}
     ...    env:AWS_DEFAULT_ENDPOINT=${AWS_DEFAULT_ENDPOINT}
     ...    env:AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
@@ -84,10 +86,11 @@ Run Codeflare-SDK Test
     ...    env:CONTROL_LABEL=node-role.kubernetes.io/control-plane=
     ...    env:WORKER_LABEL=node-role.kubernetes.io/worker=
     ...    env:TOLERATION_KEY=node-role.kubernetes.io/master
-    ...    env:TEST_USER_TOKEN=${TEST_USER_TOKEN}
     ...    shell=true
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}
+    ${oc_whoami} =  Run   oc whoami
+    Log To Console    "Logged in User after running sdk test : ${oc_whoami}"
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed
     END

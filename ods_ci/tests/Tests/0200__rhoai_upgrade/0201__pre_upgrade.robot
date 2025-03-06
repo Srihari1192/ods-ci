@@ -177,8 +177,8 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     [Setup]     Prepare Codeflare-SDK Test Setup
     ${PRJ_UPGRADE}=     Set Variable        test-ns-rayupgrade
     ${JOB_NAME}=        Set Variable        mnist
-    ${test_user_token} =    Generate User Token    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}
-    Set Suite Variable    ${TEST_USER_TOKEN}   ${test_user_token}
+    ${oc_whoami} =  Run   oc whoami
+    Log To Console    "Logged in User before running sdk test : ${oc_whoami}"
     Run Codeflare-SDK Test
     ...    upgrade
     ...    raycluster_sdk_upgrade_test.py::TestMNISTRayClusterUp

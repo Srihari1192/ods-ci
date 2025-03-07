@@ -222,7 +222,7 @@ Verify Distributed Workload Metrics Resources By Creating Ray Cluster Workload
     Check Distributed Workload Resource Metrics Chart       ${PRJ_UPGRADE}      ${cpu_requested}
     ...     ${memory_requested}     RayCluster      ${JOB_NAME}
 
-    [Teardown]      Run Keywords        Cleanup Codeflare-SDK Setup     AND
+    [Teardown]      Run Keywords       Cleanup Codeflare-SDK Setup    AND
     ...     Run Keyword If Test Failed      Codeflare Upgrade Tests Teardown        ${PRJ_UPGRADE}      ${DW_PROJECT_CREATED}       # robocop: disable:line-too-long
 
 Run Training Operator KFTO Setup PyTorchJob Test Use Case

@@ -67,7 +67,7 @@ Prepare Codeflare-SDK Test Setup
 
     Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
 
-    # Perform oc login with default kubeconfig
+    Log To Console    "Log  as user : ${TEST_USER.USERNAME}"
     Login To OCP Using API    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}
 
     ${oc_whoami} =  Run   oc whoami
@@ -110,6 +110,9 @@ Cleanup Codeflare-SDK Setup
 
     Log To Console     "Removing directory ${CODEFLARE-SDK_DIR}"
     Remove Directory        ${CODEFLARE-SDK_DIR}    recursive=True
+
+    Log To Console    "Log back as cluster admin"
+    Login To OCP Using API    ${OCP_ADMIN_USER.USERNAME}    ${OCP_ADMIN_USER.PASSWORD}
 
 Prepare Training Operator KFTO E2E Test Suite
     [Documentation]    Prepare Training Operator KFTO E2E Test Suite

@@ -194,7 +194,7 @@ Verify Ray Cluster Exists And Monitor Workload Metrics By Submitting Ray Job Aft
     # robocop: off=too-long-test-case
     # robocop: off=too-many-calls-in-test-case
     [Documentation]    check the Ray Cluster exists , submit ray job and    verify resource usage after upgrade
-    [Tags]      Upgrade    WorkloadOrchestration
+    [Tags]      Ray-Upgrade    WorkloadOrchestration
     [Setup]     Prepare Codeflare-SDK Test Setup
     ${PRJ_UPGRADE}      Set Variable        test-ns-rayupgrade
     ${LOCAL_QUEUE}      Set Variable        local-queue-mnist

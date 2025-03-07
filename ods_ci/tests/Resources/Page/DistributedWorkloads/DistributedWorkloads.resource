@@ -68,7 +68,7 @@ Prepare Codeflare-SDK Test Setup
     Clone Git Repository    ${CODEFLARE-SDK_REPO_URL}    ${CODEFLARE-SDK-RELEASE-TAG}    ${CODEFLARE-SDK_DIR}
 
     # Perform oc login with default kubeconfig
-    Login To OCP Using API And Kubeconfig    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}    ${KUBECONFIGPATH}
+    Login To OCP Using API    ${TEST_USER.USERNAME}    ${TEST_USER.PASSWORD}
 
     ${oc_whoami} =  Run   oc whoami
     Log To Console    "Logged in User after Login : ${oc_whoami}"

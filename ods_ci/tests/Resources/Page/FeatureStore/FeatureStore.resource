@@ -5,6 +5,11 @@ Library          Process
 Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
+*** Variables ***
+${FEATURE-STORE-RELEASE-TAG}             adjustment-release-v0.48.1
+${FEATURE-STORE_DIR}                     feature-store
+${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/opendatahub-io/feast.git}
+
 *** Keywords ***
 Prepare Feature Store Test Suite
     [Documentation]   Prepare Feature store setup by enabling component
@@ -16,3 +21,28 @@ Cleanup Feature Store Setup
     [Documentation]   cleanup Feature store setup by Disabling component
     Disable Component    feastoperator
     RHOSi Teardown
+
+Prepare Feature Store Operator E2E Test Suite
+    [Documentation]    Prepare Feature Store Operator E2E Test Suite
+    Common.Clone Git Repository    ${FEATURE-STORE_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEATURE-STORE_DIR}
+    Prepare Feature Store Test Suite
+
+Cleanup Feature Store Operator E2E Test Suite
+    [Documentation]    Cleanup Feature Store Operator E2E Test Suite
+    Log To Console     "Removing directory ${FEATURE-STORE_DIR}"
+    Remove Directory        ${FEATURE-STORE_DIR}    recursive=True
+    Cleanup Feature Store Setup
+
+Run Feast Operator E2E Test
+    [Documentation]   Run feast operator e2e test
+    [Arguments]   ${TEST_NAME}
+    Log To Console    "Running feature-store operator e2e test: ${TEST_NAME}"
+    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 5m ./test/e2e/ -v -ginkgo.focus=${TEST_NAME}
+    ${result}=    Run Process    ${command}
+    ...    shell=true
+    ...    env:RUN_ON_OPENSHIFT_CI=true
+    ...    stderr=STDOUT
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    Running test ${TEST_NAME} failed
+    END

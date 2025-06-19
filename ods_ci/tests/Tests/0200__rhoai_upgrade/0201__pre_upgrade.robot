@@ -23,6 +23,7 @@ Resource            ../../Resources/CLI/DataSciencePipelines/DataSciencePipeline
 Resource            ../../Resources/Page/DistributedWorkloads/DistributedWorkloads.resource
 Resource            ../../Resources/Page/DistributedWorkloads/WorkloadMetricsUI.resource
 Resource            ../../Resources/Page/ModelRegistry/ModelRegistry.resource
+Resource            ../../Resources/Page/FeatureStore/FeatureStore.resource
 
 Suite Setup         Upgrade Suite Setup
 Suite Teardown      RHOSi Teardown
@@ -252,6 +253,12 @@ Long Running Jupyter Notebook
 
     Close Browser
 
+Run Feast operator Preupgrade Test Use Case
+    [Documentation]    Run TestRemoteRegistryFeastCR Test Use Case
+    [Tags]  Upgrade    FeatureStoreUpgrade
+    [Setup]    Prepare Feature Store Test Suite
+    Run Feast Operator Upgrade Test    feastPreUpgrade
+    [Teardown]    Teardown Feast E2E Test Suite
 
 *** Keywords ***
 Launch Notebook

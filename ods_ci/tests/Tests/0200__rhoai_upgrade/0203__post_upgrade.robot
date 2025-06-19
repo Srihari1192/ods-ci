@@ -318,9 +318,16 @@ Model Registry Post Upgrade Verification
 
 Run Feast operator TestRemoteRegistryFeastCR Test Use Case
     [Documentation]    Run TestRemoteRegistryFeastCR Test Use Case
-    [Tags]  Upgrade    FeatureStoreUpgrade
+    [Tags]  Upgrade
     [Setup]    Prepare Feature Store Upgrade Test
     Run Feast Operator E2E Test    TestRemoteRegistryFeastCR
+    [Teardown]    Teardown Feast E2E Test Suite
+
+Run Feast operator PostUpgrade Test Use Case
+    [Documentation]    Run TestRemoteRegistryFeastCR Test Use Case
+    [Tags]  Upgrade    FeatureStoreUpgrade    FeatureStore
+    [Setup]    Prepare Feature Store Test Suite
+    Run Feast Operator Upgrade Test    feastPostUpgrade
     [Teardown]    Teardown Feast E2E Test Suite
 
 *** Keywords ***

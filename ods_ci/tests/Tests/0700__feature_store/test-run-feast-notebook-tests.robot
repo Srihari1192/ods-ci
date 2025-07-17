@@ -13,6 +13,6 @@ Test Tags         ExcludeOnODH
 Run feastMilvusNotebook Test
     [Documentation]    Run Feast Notebook test: TestFeastMilvusNotebook
     [Tags]  Tier1
-    ...     FeatureStore
+    ...     FeatureStore1
     ...     RHOAIENG-27952
     Run Feast Notebook Test    TestFeastMilvusNotebook

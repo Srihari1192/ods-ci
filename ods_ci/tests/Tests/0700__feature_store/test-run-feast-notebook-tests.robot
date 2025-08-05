@@ -16,3 +16,10 @@ Run feastMilvusNotebook Test
     ...     FeatureStore
     ...     RHOAIENG-27952
     Run Feast Notebook Test    TestFeastMilvusNotebook
+
+Run registryRestAPI Test
+    [Documentation]    Run Feast Notebook test: TestFeastMilvusNotebook
+    [Tags]  Tier1
+    ...     FeatureStore
+    ...     RHOAIENG-12345
+    Run Feast Regsitry Rest API Test    test_feast_registry.py

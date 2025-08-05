@@ -6,23 +6,23 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             v0.50.0
+${FEATURE-STORE-RELEASE-TAG}             addRegistryRESTAPITest
 ${FEATURE-STORE_DIR}                     feature-store
-${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/feast-dev/feast.git}
+${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/Srihari1192/feast.git}
 ${NOTEBOOK_IMAGE}                        quay.io/modh/odh-workbench-jupyter-datascience-cpu-py311-ubi9@sha256:48c2be818e8d2a5005a69e2c76f9a2d40ddeb1d03376e04516ca6da13418c887
 ${FEAST_VERSION}                         0.48.1
-
+${PYTHON_VERSION}                        3.11
 
 *** Keywords ***
 Prepare Feature Store Test Suite
     [Documentation]   Prepare Feature store setup by enabling component
     RHOSi Setup
-    Enable Component    feastoperator
-    Wait Component Ready    feastoperator
+#    Enable Component    feastoperator
+#    Wait Component Ready    feastoperator
 
 Cleanup Feature Store Setup
     [Documentation]   cleanup Feature store setup by Disabling component
-    Disable Component    feastoperator
+#    Disable Component    feastoperator
     RHOSi Teardown
 
 Prepare Feast E2E Test Suite
@@ -31,7 +31,7 @@ Prepare Feast E2E Test Suite
     Log To Console    "Cloning Git reposiotory ${FEATURE-STORE_REPO_URL}"
     Common.Clone Git Repository    ${FEATURE-STORE_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEATURE-STORE_DIR}
     Prepare Feature Store Test Suite
-    Skip If Component Is Not Enabled     feastoperator
+#    Skip If Component Is Not Enabled     feastoperator
 
 Teardown Feast E2E Test Suite
     [Documentation]   Cleanup directory and Feast E2E Test Suite
@@ -68,6 +68,24 @@ Run Feast Notebook Test
     ...    env:OPENAI_API_KEY=${OPENAI_API_KEY}
     ...    env:PIP_INDEX_URL=${PIP_INDEX_URL}
     ...    env:PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    Running test ${TEST_NAME} failed
+    END
+
+Run Feast Regsitry Rest API Test
+    [Documentation]    Run Feast Regsitry Rest API Test
+    [Arguments]    ${TEST_NAME}
+    Log To Console    "Running Regsitry Rest API Test: ${TEST_NAME}"
+    ${command}=    Set Variable    curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=$$HOME/.local/bin:$$PATH && export UV_SYSTEM_PYTHON=`command -v python3.11` && cd ${FEATURE-STORE_DIR} && pwd && python version && make install-python-dependencies-ci PYTHON_VERSION=${PYTHON_VERSION} && pytest sdk/python/tests/registry_rest_api_tests/${TEST_NAME} -s
+    ${result} =    Run Process    ${command}
+    ...    env:RUN_ON_OPENSHIFT_CI=true
+    ...    env:AWS_ACCESS_KEY=${S3.AWS_ACCESS_KEY_ID}
+    ...    env:AWS_SECRET_KEY=${S3.AWS_SECRET_ACCESS_KEY}
+    ...    env:AWS_BUCKET_NAME=${S3.BUCKET_1.NAME}
+    ...    env:AWS_REGISTRY_FILE_PATH=feast-credit-score-remote-data
+    ...    shell=true
+    ...    stderr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed

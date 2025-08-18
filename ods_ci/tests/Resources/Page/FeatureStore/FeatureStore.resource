@@ -6,11 +6,11 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             v0.50.0
+${FEATURE-STORE-RELEASE-TAG}             v0.52.0
 ${FEATURE-STORE_DIR}                     feature-store
 ${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/feast-dev/feast.git}
-${NOTEBOOK_IMAGE}                        quay.io/modh/odh-workbench-jupyter-pytorch-cuda-py311-ubi9@sha256:891ca3cf61bbdd256e9ed996b10d76bc460eb0fab41d1cb48d5994a8b3bd7c70
-${FEAST_VERSION}                         0.50.0
+${NOTEBOOK_IMAGE}                        quay.io/modh/odh-workbench-jupyter-pytorch-cuda-py311-ubi9@sha256:481669507bb06925fe740ed50ac23469fbabc0987d887183aa92b65971941c5b
+${FEAST_VERSION}                         0.52.0
 
 
 *** Keywords ***

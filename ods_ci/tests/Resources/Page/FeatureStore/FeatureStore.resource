@@ -6,10 +6,10 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             v0.55.0
+${FEATURE-STORE-RELEASE-TAG}             updateTestDigestImages
 ${FEATURE-STORE_DIR}                     feature-store
-${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/feast-dev/feast.git}
-${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:dd37de4ca53ce242a0f67a70d19eebf157679098a3417e9ffdf8e24378f6bdcc
+${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/Srihari1192/feast.git}
+${NOTEBOOK_IMAGE}                        quay.io/rhoai/rhoai-fbc-fragment@sha256:392ff9029c32c65860e996ce3c805bcdd6b24594d85b733192365237a2b86703
 ${FEAST_VERSION}                         0.55.0
 
 

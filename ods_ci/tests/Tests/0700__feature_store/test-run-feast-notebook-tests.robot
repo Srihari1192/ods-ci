@@ -16,3 +16,25 @@ Run feastMilvusNotebook Test
     ...     FeatureStore
     ...     RHOAIENG-27952
     Run Feast Notebook Test    TestFeastMilvusNotebook
+
+Run feastWBConnectionWithAuth Test
+    [Documentation]    Run Feast Workbench connection Notebook test: FeastWorkbenchIntegrationWithAuth
+    [Tags]  Tier1
+    ...     FeatureStore
+    ...     RHOAIENG-38921
+    Run Feast Notebook Test    FeastWorkbenchIntegrationWithAuth
+
+Run feastWBConnectionWithoutAuth Test
+    [Documentation]    Run Feast Workbench connection Notebook test: FeastWorkbenchIntegrationWithoutAuth
+    [Tags]  Tier1
+    ...     FeatureStore
+    ...     RHOAIENG-30000
+    Run Feast Notebook Test    FeastWorkbenchIntegrationWithoutAuth
+
+Run feastRayOfflineStore Test
+    [Documentation]    Run Feast Ray Offline store Notebook test: TestFeastRayOfflineStoreNotebook
+    [Tags]  Tier1
+    ...     FeatureStore
+    ...     RHOAIENG-38921
+    Run Feast Notebook Test    TestFeastRayOfflineStoreNotebook
+

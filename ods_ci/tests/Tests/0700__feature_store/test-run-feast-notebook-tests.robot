@@ -28,7 +28,7 @@ Run feastWorkbenchIntegrationWithoutAuth Test
     [Documentation]    Run Feast Notebook test: TestFeastWorkbenchIntegrationWithoutAuth
     [Tags]  Tier1
     ...     FeatureStore
-    ...     RHOAIENG-38921
+    ...     RHOAIENG-8921
     Run Feast Notebook Test    FeastWorkbenchIntegrationWithoutAuth
 
 Run feastRayOfflineStore Test

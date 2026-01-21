@@ -24,16 +24,16 @@ Run feastWorkbenchIntegrationWithAuth Test
     ...     RHOAIENG-38921
     Run Feast Notebook Test    FeastWorkbenchIntegrationWithAuth
 
+Run feastRayOfflineStore Test
+    [Documentation]    Run Feast Notebook test: TestTestFeastRayOfflineStoreNotebook
+    [Tags]  Tier1
+    ...     FeatureStore
+    ...     RHOAIENG-23q24e
+    Run Feast Notebook Test    TestFeastRayOfflineStoreNotebook
+
 Run feastWorkbenchIntegrationWithoutAuth Test
     [Documentation]    Run Feast Notebook test: TestFeastWorkbenchIntegrationWithoutAuth
     [Tags]  Tier1
     ...     FeatureStore
     ...     RHOAIENG-38921
     Run Feast Notebook Test    FeastWorkbenchIntegrationWithoutAuth
-
-Run feastRayOfflineStore Test
-    [Documentation]    Run Feast Notebook test: TestTestFeastRayOfflineStoreNotebook
-    [Tags]  Tier1
-    ...     FeatureStore
-    ...     RHOAIENG-38921
-    Run Feast Notebook Test    TestFeastRayOfflineStoreNotebook

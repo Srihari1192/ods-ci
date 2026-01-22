@@ -6,11 +6,11 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             adde2e-rhoai-tests
+${FEATURE-STORE-RELEASE-TAG}             fixFeastNBTestsHang
 ${FEATURE-STORE_DIR}                     feature-store
 ${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/Srihari1192/feast.git}
-${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:c8d571c6b7c20e8556c2a1a222c9ea75dec693c3c7afd99bb5570cab9919c4d9
-${FEAST_VERSION}                         0.58.0
+${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:3faafe919bd8d0088da372979466c905a3d28783f1a6020d634f4445ee09d91d
+${FEAST_VERSION}                         0.59.0
 
 
 *** Keywords ***

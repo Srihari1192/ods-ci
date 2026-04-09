@@ -173,7 +173,7 @@ Long Running Jupyter Notebook
 
 Run Feast operator Preupgrade Test Use Case
     [Documentation]    Run Test to Create Feature store CR
-    [Tags]  Upgrade    FeatureStoreUpgrade
+    [Tags]  Upgrade    FeatureStorePreUpgrade
     [Setup]    Prepare Feast E2E Test Suite
     Run Feast Operator Upgrade Test    feastPreUpgrade
     [Teardown]    Teardown Feast E2E Test Suite

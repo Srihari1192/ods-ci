@@ -96,6 +96,16 @@ Run Feast Notebook Test
     [Documentation]    Run feast Notebook test
     [Arguments]   ${TEST_NAME}
     Log To Console    "Running feature-store Notebook test: ${TEST_NAME}"
+    ${cluster_auth_value}=    Get Variable Value    ${CLUSTER_AUTH}    ${EMPTY}
+    IF  "${cluster_auth_value}" == "oidc"
+        ${token}=    Get Oidc Token
+        ...      ${CLUSTER_OIDC_ISSUER}
+        ...      ${TEST_USER.USERNAME}
+        ...      ${TEST_USER.PASSWORD}
+        Should Not Be Empty    ${token}
+    ELSE
+        ${token}=    Set Variable    ${EMPTY}
+    END
     ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/e2e_rhoai/ -v -ginkgo.focus=${TEST_NAME}
     ${result}=    Run Process    ${command}
     ...    shell=true
@@ -108,6 +118,7 @@ Run Feast Notebook Test
     ...    env:OPENAI_API_KEY=${OPENAI_API_KEY}
     ...    env:PIP_INDEX_URL=${PIP_INDEX_URL}
     ...    env:PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+    ...    env:TOKEN=${token}
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed

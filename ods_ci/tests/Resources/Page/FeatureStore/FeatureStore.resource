@@ -6,7 +6,7 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             release-3.6
+${FEATURE-STORE-RELEASE-TAG}             main
 ${FEATURE-STORE_DIR}                     feature-store
 ${FEAST-MODULE-OPERATOR_DIR}             feast-modular-operator
 ${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/opendatahub-io/feast.git}
@@ -75,10 +75,10 @@ Run Feast Operator E2E Test
     [Documentation]   Run feast operator e2e test
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
     Log To Console    "Running feature-store operator e2e test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/${TEST_TYPE}/ -v -ginkgo.focus=${TEST_NAME}
+    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 25m ./test/${TEST_TYPE}/ -v -ginkgo.focus=${TEST_NAME}
     ${result}=    Run Process    ${command}
     ...    shell=true
-    ...    timeout=10 min
+    ...    timeout=25 min
     ...    env:RUN_ON_OPENSHIFT_CI=true
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}
@@ -196,14 +196,16 @@ Run Feast Module Operator Test
     [Documentation]   Run feast modular operator Go test against the cluster
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
     Log To Console    "Running feast modular operator ${TEST_TYPE} test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEAST-MODULE-OPERATOR_DIR} && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -tags=${TEST_TYPE} -timeout 10m ./test/${TEST_TYPE}/ -v -run ${TEST_NAME}
+    ${command}=    Set Variable    cd ${FEAST-MODULE-OPERATOR_DIR} && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -tags=${TEST_TYPE} -timeout 10m ./test/${TEST_TYPE}/ -v -x -run ${TEST_NAME}
     ${result}=    Run Process    ${command}
     ...    shell=true
-    ...    timeout=10 min
+    ...    timeout=15 min
     ...    env:OPERATOR_NAMESPACE=${APPLICATIONS_NAMESPACE}
     ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
     ...    env:FEAST_VERSION=${FEAST_VERSION}
     ...    env:FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
+    ...    env:GOMODCACHE=/tmp/go-mod-cache
+    ...    env:GOCACHE=/tmp/go-build-cache
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0

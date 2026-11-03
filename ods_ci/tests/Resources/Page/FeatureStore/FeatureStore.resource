@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation    This is a resource file for Distributed Workloads.
+Documentation    Feature Store / Feast modular operator test keywords.
 Library          OperatingSystem
 Library          Process
 Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
@@ -14,9 +14,14 @@ ${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-dat
 ${FEAST_VERSION}                         0.67.0
 ${FEAST_NOTEBOOK_VERSION}                0.66.0
 ${FEAST-MODULE-OPERATOR_REPO_URL}        %{FEAST-MODULE-OPERATOR_REPO_URL=https://github.com/opendatahub-io/feast-module-operator.git}
+${FEAST-MODULE-OPERATOR-RELEASE-TAG}     %{FEAST-MODULE-OPERATOR-RELEASE-TAG=test-release-3.6}
 ${FEAST_PLATFORM_VERSION}                3.6.0
 ${DSC_NAME}                              default-dsc
 ${FEAST_MCP_CONTAINER_NAME}              mcpserver
+# Prebuilt Go e2e image (module-operator + feast-operator). No go mod download on the agent.
+${FEAST_TEST_IMAGE}                      %{FEAST_TEST_IMAGE=quay.io/feastdev-ci/feast-test-images:feast-3.6}
+${FEAST_TEST_WORKDIR}                    feast-test-image
+${FEAST_CONTAINER_TOOL}                  %{FEAST_CONTAINER_TOOL=podman}
 
 
 *** Keywords ***
@@ -29,31 +34,69 @@ Prepare Feature Store Test Suite
         Wait Component Ready    feastoperator
     END
 
+Prepare Feast Test Image Assets
+    [Documentation]    Pull combined feast test image and extract binaries + test trees (DW-style).
+    ${already}=    Run Keyword And Return Status
+    ...    File Should Exist    ${FEAST_TEST_WORKDIR}/.extracted
+    IF    ${already}
+        Log To Console    Feast test image assets already extracted under ${FEAST_TEST_WORKDIR}
+        RETURN
+    END
+    Log To Console    Pulling feast test image ${FEAST_TEST_IMAGE}
+    ${pull}=    Run Process    ${FEAST_CONTAINER_TOOL} pull ${FEAST_TEST_IMAGE}
+    ...    shell=true
+    ...    stderr=STDOUT
+    Log To Console    ${pull.stdout}
+    Should Be Equal As Integers    ${pull.rc}    0    msg=Failed to pull ${FEAST_TEST_IMAGE}
+    Create Directory    ${FEAST_TEST_WORKDIR}
+    ${cid_result}=    Run Process    ${FEAST_CONTAINER_TOOL} create ${FEAST_TEST_IMAGE}
+    ...    shell=true
+    ...    stderr=STDOUT
+    Should Be Equal As Integers    ${cid_result.rc}    0    msg=Failed to create container from ${FEAST_TEST_IMAGE}: ${cid_result.stdout}
+    ${cid}=    Strip String    ${cid_result.stdout}
+    ${cp}=    Run Process    ${FEAST_CONTAINER_TOOL} cp ${cid}:/usr/local/bin/feast-e2e ${FEAST_TEST_WORKDIR}/feast-e2e
+    ...    && ${FEAST_CONTAINER_TOOL} cp ${cid}:/usr/local/bin/feast-operator-e2e ${FEAST_TEST_WORKDIR}/feast-operator-e2e
+    ...    && ${FEAST_CONTAINER_TOOL} cp ${cid}:/usr/local/bin/feast-operator-e2e-rhoai ${FEAST_TEST_WORKDIR}/feast-operator-e2e-rhoai
+    ...    && ${FEAST_CONTAINER_TOOL} cp ${cid}:/usr/local/bin/kubectl ${FEAST_TEST_WORKDIR}/kubectl
+    ...    && ${FEAST_CONTAINER_TOOL} cp ${cid}:/feast-module-operator ${FEAST_TEST_WORKDIR}/feast-module-operator
+    ...    && ${FEAST_CONTAINER_TOOL} cp ${cid}:/feast-operator ${FEAST_TEST_WORKDIR}/feast-operator
+    ...    && ${FEAST_CONTAINER_TOOL} rm ${cid}
+    ...    && chmod +x ${FEAST_TEST_WORKDIR}/feast-e2e ${FEAST_TEST_WORKDIR}/feast-operator-e2e ${FEAST_TEST_WORKDIR}/feast-operator-e2e-rhoai ${FEAST_TEST_WORKDIR}/kubectl
+    ...    && touch ${FEAST_TEST_WORKDIR}/.extracted
+    ...    shell=true
+    ...    stderr=STDOUT
+    Log To Console    ${cp.stdout}
+    Should Be Equal As Integers    ${cp.rc}    0    msg=Failed to extract feast test assets: ${cp.stdout}
+
+Teardown Feast Test Image Assets
+    [Documentation]    Remove extracted feast test image assets
+    Log To Console    Removing feast test workdir ${FEAST_TEST_WORKDIR}
+    ${exists}=    Run Keyword And Return Status    Directory Should Exist    ${FEAST_TEST_WORKDIR}
+    IF    ${exists}
+        Remove Directory    ${FEAST_TEST_WORKDIR}    recursive=True
+    END
+
 Prepare Feast E2E Test Suite
-    [Documentation]    Prepare Feast E2E Test Suite
-    Log To Console    Preparing Feast E2E Test Suite
-    Log To Console    "Cloning Git reposiotory ${FEATURE-STORE_REPO_URL}"
-    Common.Clone Git Repository    ${FEATURE-STORE_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEATURE-STORE_DIR}
+    [Documentation]    Prepare Feast operator E2E suite from prebuilt image (no git clone / go test compile)
+    Log To Console    Preparing Feast E2E Test Suite from ${FEAST_TEST_IMAGE}
+    Prepare Feast Test Image Assets
     Prepare Feature Store Test Suite
     Skip If Component Is Not Enabled     feastoperator
 
 Teardown Feast E2E Test Suite
-    [Documentation]   Cleanup directory and Feast E2E Test Suite
-    Log To Console     "Removing directory ${FEATURE-STORE_DIR}"
-    Remove Directory        ${FEATURE-STORE_DIR}    recursive=True
+    [Documentation]   Cleanup Feast E2E Test Suite assets
+    Teardown Feast Test Image Assets
 
 Prepare Feast Modular Operator E2E Test Suite
-    [Documentation]    Prepare Feast E2E Test Suite
-    Log To Console    Preparing Feast E2E Test Suite
-    Log To Console    "Cloning Git reposiotory ${FEAST-MODULE-OPERATOR_REPO_URL}"
-    Common.Clone Git Repository    ${FEAST-MODULE-OPERATOR_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEAST-MODULE-OPERATOR_DIR}
+    [Documentation]    Prepare Feast modular operator suite from prebuilt image
+    Log To Console    Preparing Feast Modular Operator E2E from ${FEAST_TEST_IMAGE}
+    Prepare Feast Test Image Assets
     Prepare Feature Store Test Suite
     Skip If Component Is Not Enabled     feastoperator
 
 Teardown Feast Modular Operator E2E Test Suite
-    [Documentation]   Cleanup directory and Feast E2E Test Suite
-    Log To Console     "Removing directory ${FEAST-MODULE-OPERATOR_DIR}"
-    Remove Directory        ${FEAST-MODULE-OPERATOR_DIR}    recursive=True
+    [Documentation]   Cleanup modular operator test assets
+    Teardown Feast Test Image Assets
 
 Ensure Kueue Unmanaged For Feast Ray Offline Store Test
     [Documentation]    Ensure Kueue is Unmanaged for Feast tests
@@ -72,14 +115,16 @@ Restore Kueue State After Feast Ray Offline Store Test
     END
 
 Run Feast Operator E2E Test
-    [Documentation]   Run feast operator e2e test
+    [Documentation]   Run feast-operator e2e binary from image (test/e2e)
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
-    Log To Console    "Running feature-store operator e2e test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/${TEST_TYPE}/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
+    Log To Console    "Running feature-store operator e2e test: ${TEST_NAME} (image binary)"
+    ${workdir}=    Normalize Path    ${FEAST_TEST_WORKDIR}
+    ${result}=    Run Process    ${workdir}/feast-operator-e2e -test.v -ginkgo.focus=${TEST_NAME}
     ...    shell=true
-    ...    timeout=10 min
+    ...    cwd=${workdir}/feast-operator
+    ...    timeout=15 min
     ...    env:RUN_ON_OPENSHIFT_CI=true
+    ...    env:PATH=${workdir}:%{PATH}
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
@@ -87,14 +132,16 @@ Run Feast Operator E2E Test
     END
 
 Run Feast Operator Upgrade Test
-    [Documentation]   Run feast operator Upgrade test
+    [Documentation]   Run feast operator Upgrade test from e2e_rhoai binary
     [Arguments]   ${TEST_NAME}
-    Log To Console    "Running feature-store operator Upgrade test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/e2e_rhoai/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
+    Log To Console    "Running feature-store operator Upgrade test: ${TEST_NAME} (image binary)"
+    ${workdir}=    Normalize Path    ${FEAST_TEST_WORKDIR}
+    ${result}=    Run Process    ${workdir}/feast-operator-e2e-rhoai -test.v -ginkgo.focus=${TEST_NAME}
     ...    shell=true
-    ...    timeout=10 min
+    ...    cwd=${workdir}/feast-operator
+    ...    timeout=15 min
     ...    env:RUN_ON_OPENSHIFT_CI=true
+    ...    env:PATH=${workdir}:%{PATH}
     ...    env:AWS_ACCESS_KEY_ID=${S3.AWS_ACCESS_KEY_ID}
     ...    env:AWS_SECRET_ACCESS_KEY=${S3.AWS_SECRET_ACCESS_KEY}
     ...    env:AWS_DEFAULT_REGION=${S3.BUCKET_1.REGION}
@@ -106,9 +153,9 @@ Run Feast Operator Upgrade Test
     END
 
 Run Feast Notebook Test
-    [Documentation]    Run feast Notebook test
+    [Documentation]    Run feast Notebook / e2e_rhoai test from image binary
     [Arguments]   ${TEST_NAME}
-    Log To Console    "Running feature-store Notebook test: ${TEST_NAME}"
+    Log To Console    "Running feature-store Notebook test: ${TEST_NAME} (image binary)"
     ${cluster_auth_value}=    Get Variable Value    ${CLUSTER_AUTH}    ${EMPTY}
     IF  "${cluster_auth_value}" == "oidc"
         ${token}=    Get Oidc Token
@@ -119,12 +166,14 @@ Run Feast Notebook Test
     ELSE
         ${token}=    Set Variable    ${EMPTY}
     END
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/e2e_rhoai/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
+    ${workdir}=    Normalize Path    ${FEAST_TEST_WORKDIR}
+    ${result}=    Run Process    ${workdir}/feast-operator-e2e-rhoai -test.v -ginkgo.focus=${TEST_NAME}
     ...    shell=true
+    ...    cwd=${workdir}/feast-operator
     ...    stderr=STDOUT
-    ...    timeout=10 min
+    ...    timeout=15 min
     ...    env:RUN_ON_OPENSHIFT_CI=true
+    ...    env:PATH=${workdir}:%{PATH}
     ...    env:NOTEBOOK_IMAGE=${NOTEBOOK_IMAGE}
     ...    env:FEAST_VERSION=${FEAST_NOTEBOOK_VERSION}
     ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
@@ -193,17 +242,19 @@ Check Feast Instance Pod Images Pull Path Is Correct
     END
 
 Run Feast Module Operator Test
-    [Documentation]   Run feast modular operator Go test against the cluster
+    [Documentation]   Run feast modular operator binary from image (no go mod download)
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
-    Log To Console    "Running feast modular operator ${TEST_TYPE} test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEAST-MODULE-OPERATOR_DIR} && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -tags=${TEST_TYPE} -timeout 10m ./test/${TEST_TYPE}/ -v -run ${TEST_NAME}
-    ${result}=    Run Process    ${command}
+    Log To Console    "Running feast modular operator ${TEST_TYPE} test: ${TEST_NAME} (image binary)"
+    ${workdir}=    Normalize Path    ${FEAST_TEST_WORKDIR}
+    ${result}=    Run Process    ${workdir}/feast-e2e -test.v -test.run ${TEST_NAME}
     ...    shell=true
-    ...    timeout=10 min
+    ...    cwd=${workdir}/feast-module-operator
+    ...    timeout=15 min
     ...    env:OPERATOR_NAMESPACE=${APPLICATIONS_NAMESPACE}
     ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
     ...    env:FEAST_VERSION=${FEAST_VERSION}
     ...    env:FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
+    ...    env:PATH=${workdir}:%{PATH}
     ...    stderr=STDOUT
     Log To Console    ${result.stdout}
     IF    ${result.rc} != 0
@@ -211,11 +262,14 @@ Run Feast Module Operator Test
     END
 
 Run Feast Module Operator E2E Upgrade Test
-    [Documentation]   Run feast modular operator upgrade test
+    [Documentation]   Run feast modular operator upgrade test (still requires source clone; not in image yet)
     [Arguments]   ${TEST_TYPE}
     Log To Console    "Running feast modular operator ${TEST_TYPE} upgrade test"
-    ${command}=    Set Variable    cd ${FEAST-MODULE-OPERATOR_DIR} && go test ./test/e2e/upgrade/${TEST_TYPE}/ -v -tags=e2e -timeout 3m
-    ${result}=    Run Process    ${command}
+    ${cloned}=    Run Keyword And Return Status    Directory Should Exist    ${FEAST-MODULE-OPERATOR_DIR}
+    IF    not ${cloned}
+        Common.Clone Git Repository    ${FEAST-MODULE-OPERATOR_REPO_URL}    ${FEAST-MODULE-OPERATOR-RELEASE-TAG}    ${FEAST-MODULE-OPERATOR_DIR}
+    END
+    ${result}=    Run Process    cd ${FEAST-MODULE-OPERATOR_DIR} && go test ./test/e2e/upgrade/${TEST_TYPE}/ -v -tags=e2e -timeout 3m
     ...    shell=true
     ...    timeout=10 min
     ...    env:FEAST_VERSION=${FEAST_VERSION}

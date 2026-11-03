@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation     Feast Notebook tests - https://github.com/opendatahub-io/feast/tree/master/infra/feast-operator/test/e2e_rhoai/
+Documentation     Feast Notebook / e2e_rhoai tests via quay.io/feastdev-ci/feast-test-images:feast-3.6
 Suite Setup       Prepare Feast E2E Test Suite
 Suite Teardown    Teardown Feast E2E Test Suite
 Library           Process

@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation     Feast Modular Operator tests - https://github.com/opendatahub-io/feast-module-operator/tree/main/test/e2e
+Documentation     Feast Modular Operator tests via quay.io/feastdev-ci/feast-test-images:feast-3.6
 Suite Setup       Prepare Feast Modular Operator E2E Test Suite
 Suite Teardown    Teardown Feast Modular Operator E2E Test Suite
 Library           Process

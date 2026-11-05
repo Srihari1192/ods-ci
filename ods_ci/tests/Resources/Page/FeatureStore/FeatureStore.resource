@@ -6,10 +6,10 @@ Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             release-3.6
+${FEATURE-STORE-RELEASE-TAG}             updateFeastE2ERHOAITests
 ${FEATURE-STORE_DIR}                     feature-store
 ${FEAST-MODULE-OPERATOR_DIR}             feast-modular-operator
-${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/opendatahub-io/feast.git}
+${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/Srihari1192/feast.git}
 ${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:99ed7fab64beb6540f2a3c6209f8608d0b0b0fee8ab0edc163a873f4b69563ab
 ${FEAST_VERSION}                         0.67.0
 ${FEAST_NOTEBOOK_VERSION}                0.66.0

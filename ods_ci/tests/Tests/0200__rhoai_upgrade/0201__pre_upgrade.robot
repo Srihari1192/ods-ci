@@ -86,9 +86,9 @@ Run Feast operator Preupgrade Test Use Case
 Run Feast Modular Operator Preupgrade test
     [Documentation]    Verify feast modular operator pre upgrade test check
     [Tags]  Upgrade    FeatureStoreUpgrade    FeatureStoreModularUpgrade
-    [Setup]    Prepare Feast Modular Operator E2E Test Suite
+    [Setup]    Prepare Feast Modular Operator Upgrade Test Suite
     Run Feast Module Operator E2E Upgrade Test    pre
-    [Teardown]    Teardown Feast Modular Operator E2E Test Suite
+    [Teardown]    Teardown Feast Modular Operator Upgrade Test Suite
 
 
 *** Keywords ***

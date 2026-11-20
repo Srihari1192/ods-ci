@@ -1,22 +1,22 @@
 *** Settings ***
-Documentation    This is a resource file for Distributed Workloads.
+Documentation    Feature Store (Feast) test keywords.
+...              E2E suites run from quay.io/feastdev-ci/feast-test-images (no git clone / Go on the agent).
 Library          OperatingSystem
 Library          Process
 Resource         ../../../../tasks/Resources/RHODS_OLM/install/oc_install.robot
 
 
 *** Variables ***
-${FEATURE-STORE-RELEASE-TAG}             release-3.6
-${FEATURE-STORE_DIR}                     feature-store
-${FEAST-MODULE-OPERATOR_DIR}             feast-modular-operator
-${FEATURE-STORE_REPO_URL}                %{FEATURE-STORE_REPO_URL=https://github.com/opendatahub-io/feast.git}
 ${NOTEBOOK_IMAGE}                        quay.io/rhoai/odh-workbench-jupyter-datascience-cpu-py312-rhel9@sha256:99ed7fab64beb6540f2a3c6209f8608d0b0b0fee8ab0edc163a873f4b69563ab
 ${FEAST_VERSION}                         0.67.0
 ${FEAST_NOTEBOOK_VERSION}                0.66.0
-${FEAST-MODULE-OPERATOR_REPO_URL}        %{FEAST-MODULE-OPERATOR_REPO_URL=https://github.com/opendatahub-io/feast-module-operator.git}
 ${FEAST_PLATFORM_VERSION}                3.6.0
 ${DSC_NAME}                              default-dsc
 ${FEAST_MCP_CONTAINER_NAME}              mcpserver
+# Precompiled e2e image (no Go toolchain on the agent). Built by feast build-feast-test-images.
+${FEAST_RHOAI_RELEASE_TAG}               %{FEAST_RHOAI_RELEASE_TAG=3.6}
+${FEAST_E2E_TEST_IMAGE}                  %{FEAST_E2E_TEST_IMAGE=quay.io/feastdev-ci/feast-test-images:feast-3.6}
+${FEAST_E2E_KUBECONFIG}                  %{KUBECONFIG=%{HOME}/.kube/config}
 
 
 *** Keywords ***
@@ -29,31 +29,70 @@ Prepare Feature Store Test Suite
         Wait Component Ready    feastoperator
     END
 
+Pull Feast E2E Test Image
+    [Documentation]    Pull precompiled Feast e2e test image (no go mod download at test time)
+    Log To Console    Pulling Feast e2e test image ${FEAST_E2E_TEST_IMAGE}
+    ${result}=    Run Process    docker pull ${FEAST_E2E_TEST_IMAGE}
+    ...    shell=true
+    ...    timeout=10 min
+    ...    stderr=STDOUT
+    Log To Console    ${result.stdout}
+    IF    ${result.rc} != 0
+        FAIL    Failed to pull ${FEAST_E2E_TEST_IMAGE}
+    END
+
+Run Feast E2E Test Image
+    [Documentation]    Run a suite from ${FEAST_E2E_TEST_IMAGE} via FEAST_TEST.
+    ...    FEAST_TEST: module-operator | module-upgrade-pre | module-upgrade-post
+    ...    | operator-e2e | operator-e2e-rhoai
+    [Arguments]    ${FEAST_TEST}    ${TEST_ARGS}=${EMPTY}    ${TIMEOUT}=15 min
+    ...    &{EXTRA_ENV}
+    Log To Console    Running FEAST_TEST=${FEAST_TEST} image=${FEAST_E2E_TEST_IMAGE} args=${TEST_ARGS}
+    ${env_flags}=    Set Variable    ${EMPTY}
+    FOR    ${key}    ${value}    IN    &{EXTRA_ENV}
+        ${env_flags}=    Catenate    ${env_flags}    -e ${key}=${value}
+    END
+    ${command}=    Catenate    SEPARATOR=${SPACE}
+    ...    docker run --rm
+    ...    -e KUBECONFIG=/kubeconfig
+    ...    -v ${FEAST_E2E_KUBECONFIG}:/kubeconfig:ro
+    ...    -e FEAST_TEST=${FEAST_TEST}
+    ...    ${env_flags}
+    ...    ${FEAST_E2E_TEST_IMAGE}
+    ...    ${TEST_ARGS}
+    ${result}=    Run Process    ${command}
+    ...    shell=true
+    ...    timeout=${TIMEOUT}
+    ...    stderr=STDOUT
+    Log To Console    ${result.stdout}
+    RETURN    ${result}
+
 Prepare Feast E2E Test Suite
-    [Documentation]    Prepare Feast E2E Test Suite
-    Log To Console    Preparing Feast E2E Test Suite
-    Log To Console    "Cloning Git reposiotory ${FEATURE-STORE_REPO_URL}"
-    Common.Clone Git Repository    ${FEATURE-STORE_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEATURE-STORE_DIR}
+    [Documentation]    Prepare Feast E2E suite (pull test image; enable feastoperator)
+    Log To Console    Preparing Feast E2E Test Suite (image=${FEAST_E2E_TEST_IMAGE})
     Prepare Feature Store Test Suite
     Skip If Component Is Not Enabled     feastoperator
+    Pull Feast E2E Test Image
 
 Teardown Feast E2E Test Suite
-    [Documentation]   Cleanup directory and Feast E2E Test Suite
-    Log To Console     "Removing directory ${FEATURE-STORE_DIR}"
-    Remove Directory        ${FEATURE-STORE_DIR}    recursive=True
+    [Documentation]   Teardown Feast E2E Test Suite (image-based; nothing to clean)
+    Log To Console     Feast E2E Test Suite teardown complete
 
 Prepare Feast Modular Operator E2E Test Suite
-    [Documentation]    Prepare Feast E2E Test Suite
-    Log To Console    Preparing Feast E2E Test Suite
-    Log To Console    "Cloning Git reposiotory ${FEAST-MODULE-OPERATOR_REPO_URL}"
-    Common.Clone Git Repository    ${FEAST-MODULE-OPERATOR_REPO_URL}    ${FEATURE-STORE-RELEASE-TAG}    ${FEAST-MODULE-OPERATOR_DIR}
-    Prepare Feature Store Test Suite
-    Skip If Component Is Not Enabled     feastoperator
+    [Documentation]    Prepare Feast modular operator E2E suite (same image as operator suites)
+    Prepare Feast E2E Test Suite
 
 Teardown Feast Modular Operator E2E Test Suite
-    [Documentation]   Cleanup directory and Feast E2E Test Suite
-    Log To Console     "Removing directory ${FEAST-MODULE-OPERATOR_DIR}"
-    Remove Directory        ${FEAST-MODULE-OPERATOR_DIR}    recursive=True
+    [Documentation]   Teardown Feast modular operator E2E suite
+    Teardown Feast E2E Test Suite
+
+Prepare Feast Modular Operator Upgrade Test Suite
+    [Documentation]    Prepare modular upgrade suite from the same Feast e2e test image
+    Prepare Feast E2E Test Suite
+
+Teardown Feast Modular Operator Upgrade Test Suite
+    [Documentation]   Teardown modular upgrade suite
+    Teardown Feast E2E Test Suite
 
 Ensure Kueue Unmanaged For Feast Ray Offline Store Test
     [Documentation]    Ensure Kueue is Unmanaged for Feast tests
@@ -72,43 +111,37 @@ Restore Kueue State After Feast Ray Offline Store Test
     END
 
 Run Feast Operator E2E Test
-    [Documentation]   Run feast operator e2e test
+    [Documentation]   Run feast operator e2e test from ${FEAST_E2E_TEST_IMAGE}
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
-    Log To Console    "Running feature-store operator e2e test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/${TEST_TYPE}/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
-    ...    shell=true
-    ...    timeout=10 min
-    ...    env:RUN_ON_OPENSHIFT_CI=true
-    ...    stderr=STDOUT
-    Log To Console    ${result.stdout}
+    Log To Console    Running feature-store operator e2e test: ${TEST_NAME} (type=${TEST_TYPE})
+    ${result}=    Run Feast E2E Test Image    operator-e2e
+    ...    -test.v -ginkgo.focus=${TEST_NAME}
+    ...    TIMEOUT=10 min
+    ...    RUN_ON_OPENSHIFT_CI=true
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed
     END
 
 Run Feast Operator Upgrade Test
-    [Documentation]   Run feast operator Upgrade test
+    [Documentation]   Run feast operator upgrade test from ${FEAST_E2E_TEST_IMAGE}
     [Arguments]   ${TEST_NAME}
-    Log To Console    "Running feature-store operator Upgrade test: ${TEST_NAME}"
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 10m ./test/e2e_rhoai/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
-    ...    shell=true
-    ...    timeout=10 min
-    ...    env:RUN_ON_OPENSHIFT_CI=true
-    ...    env:AWS_ACCESS_KEY_ID=${S3.AWS_ACCESS_KEY_ID}
-    ...    env:AWS_SECRET_ACCESS_KEY=${S3.AWS_SECRET_ACCESS_KEY}
-    ...    env:AWS_DEFAULT_REGION=${S3.BUCKET_1.REGION}
-    ...    env:AWS_S3_BUCKET=${S3.BUCKET_1.NAME}
-    ...    stderr=STDOUT
-    Log To Console    ${result.stdout}
+    Log To Console    Running feature-store operator Upgrade test: ${TEST_NAME}
+    ${result}=    Run Feast E2E Test Image    operator-e2e-rhoai
+    ...    -test.v -ginkgo.focus=${TEST_NAME}
+    ...    TIMEOUT=10 min
+    ...    RUN_ON_OPENSHIFT_CI=true
+    ...    AWS_ACCESS_KEY_ID=${S3.AWS_ACCESS_KEY_ID}
+    ...    AWS_SECRET_ACCESS_KEY=${S3.AWS_SECRET_ACCESS_KEY}
+    ...    AWS_DEFAULT_REGION=${S3.BUCKET_1.REGION}
+    ...    AWS_S3_BUCKET=${S3.BUCKET_1.NAME}
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed
     END
 
 Run Feast Notebook Test
-    [Documentation]    Run feast Notebook test
+    [Documentation]    Run feast Notebook test from ${FEAST_E2E_TEST_IMAGE}
     [Arguments]   ${TEST_NAME}
-    Log To Console    "Running feature-store Notebook test: ${TEST_NAME}"
+    Log To Console    Running feature-store Notebook test: ${TEST_NAME}
     ${cluster_auth_value}=    Get Variable Value    ${CLUSTER_AUTH}    ${EMPTY}
     IF  "${cluster_auth_value}" == "oidc"
         ${token}=    Get Oidc Token
@@ -119,19 +152,16 @@ Run Feast Notebook Test
     ELSE
         ${token}=    Set Variable    ${EMPTY}
     END
-    ${command}=    Set Variable    cd ${FEATURE-STORE_DIR}/infra/feast-operator && git fetch origin && git checkout ${FEATURE-STORE-RELEASE-TAG} && git branch && go test -timeout 15m ./test/e2e_rhoai/ -v -ginkgo.focus=${TEST_NAME}
-    ${result}=    Run Process    ${command}
-    ...    shell=true
-    ...    stderr=STDOUT
-    ...    timeout=15 min
-    ...    env:RUN_ON_OPENSHIFT_CI=true
-    ...    env:NOTEBOOK_IMAGE=${NOTEBOOK_IMAGE}
-    ...    env:FEAST_VERSION=${FEAST_NOTEBOOK_VERSION}
-    ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
-    ...    env:PIP_INDEX_URL=${PIP_INDEX_URL}
-    ...    env:PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-    ...    env:TOKEN=${token}
-    Log To Console    ${result.stdout}
+    ${result}=    Run Feast E2E Test Image    operator-e2e-rhoai
+    ...    -test.v -ginkgo.focus=${TEST_NAME}
+    ...    TIMEOUT=15 min
+    ...    RUN_ON_OPENSHIFT_CI=true
+    ...    NOTEBOOK_IMAGE=${NOTEBOOK_IMAGE}
+    ...    FEAST_VERSION=${FEAST_NOTEBOOK_VERSION}
+    ...    APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
+    ...    PIP_INDEX_URL=${PIP_INDEX_URL}
+    ...    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+    ...    TOKEN=${token}
     IF    ${result.rc} != 0
         FAIL    Running test ${TEST_NAME} failed
     END
@@ -193,49 +223,35 @@ Check Feast Instance Pod Images Pull Path Is Correct
     END
 
 Run Feast Module Operator Test
-    [Documentation]   Run feast modular operator Go test against the cluster
+    [Documentation]   Run feast modular operator e2e from ${FEAST_E2E_TEST_IMAGE}
     [Arguments]   ${TEST_NAME}    ${TEST_TYPE}
-    Log To Console    "Running feast modular operator ${TEST_TYPE} test: ${TEST_NAME}"
-    # Prefer committed vendor/ (offline). Fall back to go mod download only when vendor/ is absent.
-    ${command}=    Catenate    SEPARATOR=${\n}
-    ...    cd ${FEAST-MODULE-OPERATOR_DIR}
-    ...    git fetch origin
-    ...    git checkout ${FEATURE-STORE-RELEASE-TAG}
-    ...    git branch --show-current
-    ...    if [ -d vendor ]; then
-    ...      export GOFLAGS="-mod=vendor" GOPROXY=off GOSUMDB=off
-    ...      echo "Using vendor/ (offline)"
-    ...    else
-    ...      echo "No vendor/; running go mod download"
-    ...      go mod download
-    ...    fi
-    ...    go test -count=1 -tags=${TEST_TYPE} -timeout 5m ./test/${TEST_TYPE}/ -v -run ${TEST_NAME}
-    ${result}=    Run Process    ${command}
-    ...    shell=true
-    ...    timeout=15 min
-    ...    env:OPERATOR_NAMESPACE=${APPLICATIONS_NAMESPACE}
-    ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
-    ...    env:FEAST_VERSION=${FEAST_VERSION}
-    ...    env:FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
-    ...    stderr=STDOUT
-    Log To Console    ${result.stdout}
+    Log To Console    Running feast modular operator ${TEST_TYPE} test: ${TEST_NAME}
+    ${result}=    Run Feast E2E Test Image    module-operator
+    ...    -test.v -test.run ${TEST_NAME}
+    ...    TIMEOUT=15 min
+    ...    OPERATOR_NAMESPACE=${APPLICATIONS_NAMESPACE}
+    ...    APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
+    ...    FEAST_VERSION=${FEAST_VERSION}
+    ...    FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
     IF    ${result.rc} != 0
         FAIL    Running feast modular operator test ${TEST_NAME} failed
     END
 
 Run Feast Module Operator E2E Upgrade Test
-    [Documentation]   Run feast modular operator upgrade test
+    [Documentation]   Run feast modular operator upgrade test from ${FEAST_E2E_TEST_IMAGE}
     [Arguments]   ${TEST_TYPE}
-    Log To Console    "Running feast modular operator ${TEST_TYPE} upgrade test"
-    ${command}=    Set Variable    cd ${FEAST-MODULE-OPERATOR_DIR} && go test ./test/e2e/upgrade/${TEST_TYPE}/ -v -tags=e2e -timeout 3m
-    ${result}=    Run Process    ${command}
-    ...    shell=true
-    ...    timeout=10 min
-    ...    env:FEAST_VERSION=${FEAST_VERSION}
-    ...    env:FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
-    ...    env:APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
-    ...    stderr=STDOUT
-    Log To Console    ${result.stdout}
+    Log To Console    Running feast modular operator ${TEST_TYPE} upgrade test
+    IF    '${TEST_TYPE}' != 'pre' and '${TEST_TYPE}' != 'post'
+        FAIL    Unsupported modular upgrade TEST_TYPE=${TEST_TYPE}; use pre or post
+    END
+    ${feast_test}=    Set Variable If    '${TEST_TYPE}' == 'pre'
+    ...    module-upgrade-pre    module-upgrade-post
+    ${result}=    Run Feast E2E Test Image    ${feast_test}
+    ...    -test.v
+    ...    TIMEOUT=10 min
+    ...    FEAST_VERSION=${FEAST_VERSION}
+    ...    FEAST_OPERATOR_PLATFORM_VERSION=${FEAST_PLATFORM_VERSION}
+    ...    APPLICATIONS_NAMESPACE=${APPLICATIONS_NAMESPACE}
     IF    ${result.rc} != 0
         FAIL    Running feast modular operator ${TEST_TYPE} upgrade test failed
     END

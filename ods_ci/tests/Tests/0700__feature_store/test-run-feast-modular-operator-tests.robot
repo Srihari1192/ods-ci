@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation     Feast Modular Operator tests - https://github.com/opendatahub-io/feast-module-operator/tree/main/test/e2e
+Documentation     Feast Modular Operator tests via quay.io/feastdev-ci/feast-test-images:feast-3.6 (FEAST_TEST=module-operator)
 Suite Setup       Prepare Feast Modular Operator E2E Test Suite
 Suite Teardown    Teardown Feast Modular Operator E2E Test Suite
 Library           Process
@@ -11,7 +11,7 @@ Test Tags         ExcludeOnODH
 
 *** Test Cases ***
 Run TestFeastModularOperator foundation test
-    [Documentation]    Run Go E2E test: TestFeastModularOperator (test/e2e/e2e_foundation_test.go)
+    [Documentation]    Run modular foundation e2e from Feast test image: TestFeastOperator
     [Tags]  Smoke
     ...     FeatureStore
     ...     FeatureStoreModular
